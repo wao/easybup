@@ -93,7 +93,7 @@ __DATA__
             cfg = Config.new
             if config.is_a?(Pathname)
                 filename = config.to_s
-                config = Pathname.read
+                config = config.read
             end
 
             cfg.instance_eval(config, filename)

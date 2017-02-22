@@ -2,6 +2,7 @@
 
 require 'main'
 require 'easybup'
+require 'pp'
 
 
 include Easybup
@@ -15,8 +16,7 @@ Main{
             exit_failure!
         end
 
-        cfg = Config.new
-        cfg.instance_eval( cfg_file.read )
+        cfg = Config.parse( cfg_file )
         cfg
     end
 
