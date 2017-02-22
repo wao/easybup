@@ -1,0 +1,69 @@
+#!/usr/bin/env ruby
+
+require 'main'
+require 'easybup'
+
+
+include Easybup
+
+Main{
+
+    def get_config
+        cfg_file = params["config"].value
+        if !cfg_file.exist?
+            puts "Config file #{cfg_file} is not avaliable"
+            exit_failure!
+        end
+
+        cfg = Config.new
+        cfg.instance_eval( cfg_file.read )
+        cfg
+    end
+
+    option("config"){
+        optional
+        argument_required
+        cast :pathname
+        defaults Pathname.new( Dir.home ) + ".config/easybup/config.rb"
+    }
+
+    option("dry-run"){
+        optional
+    }
+
+
+    def run
+        puts params["config"].value.class
+        exit_success!
+    end
+
+    mode :init do
+        option("force"){
+            optional
+        }
+
+        def run
+            cfg_file = params["config"].value
+            if !params["force"].given?
+                if cfg_file.exist?
+                    puts "Config file #{cfg_file} is aleardy defined. Use --force to override it"
+                    exit_failure!
+                end
+            end
+
+            cfg_file.parent.mkpath
+            cfg_file.write( INIT_CFG_FILE )
+        end
+    end
+
+    mode :list do
+        option("all"){
+            optional
+        }
+
+        def run
+            cfg = get_config
+            pp cfg
+        end
+    end
+}
