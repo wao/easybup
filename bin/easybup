@@ -135,13 +135,14 @@ Main{
                 task = ava_tasks.values.first
             end
 
-            if params[ "exclude-bash-only" ] 
+            if params[ "exclude-bash-only" ].given? 
                 task.source.execute_bash
                 task.source.exclude_files.each do |f|
                     FileUtils.cp f.path, File.basename( f.path )
                 end
             else
                 puts task.cmd_index
+                puts task.cmd_save
                 if params[ "keep-exclude-files" ].given?
                     task.source.exclude_files.each do |f|
                         FileUtils.cp f.path, File.basename( f.path )

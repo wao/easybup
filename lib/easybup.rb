@@ -174,6 +174,10 @@ __DATA__
             [ "bup", "index", "-d", bup_root_path, "-f", index_file_path, opt_no_check_device, opt_exclude ].map{ |e| "\"#{e}\"" }.join(" ")
         end
 
+        def cmd_save
+            [ "bup", "save","-d", bup_root_path, "-f", index_file_path, "-n", branch_name, source.path ].flatten.map{ |e| "\"#{e}\"" }.join(" ") 
+        end
+
         def opt_no_check_device
             @source.external_disk? ? "--no-check-device" : ""
         end
