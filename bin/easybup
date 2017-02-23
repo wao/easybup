@@ -89,6 +89,14 @@ Main{
             optional
         }
 
+        option("keep-exclude-files"){
+            optional
+        }
+
+        option("exclude-bash-only"){
+            optional
+        }
+
         def run
             cfg = get_config
             task = nil
@@ -127,8 +135,19 @@ Main{
                 task = ava_tasks.values.first
             end
 
-            puts task.cmd_index
-            task.source.execute_bash
+            if params[ "exclude-bash-only" ] 
+                task.source.execute_bash
+                task.source.exclude_files.each do |f|
+                    FileUtils.cp f.path, File.basename( f.path )
+                end
+            else
+                puts task.cmd_index
+                if params[ "keep-exclude-files" ].given?
+                    task.source.exclude_files.each do |f|
+                        FileUtils.cp f.path, File.basename( f.path )
+                    end
+                end
+            end
         end
     end
 }

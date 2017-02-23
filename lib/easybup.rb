@@ -28,13 +28,14 @@ __DATA__
         include AttributeChain
         attr_chain :path, :index_file, :branch
 
-        attr_reader :name
+        attr_reader :name, :exclude_files
 
         def initialize(name)
             @name = name
             @exclude = []
             @bash = []
             @is_extenal_disk = false
+            @exclude_files = []
         end
 
         def exists?
@@ -70,6 +71,17 @@ __DATA__
                 @bash
             else
                 @bash.push(bash)
+            end
+        end
+
+        def execute_bash
+            @bash.each do |cmd|
+                tmp_file = Tempfile.new( "easybup-exclude" )
+                bash_cmd = "#{cmd} > #{tmp_file.path}"
+                if !system(bash_cmd)
+                    raise "bash command: `#{cmd}` execute error."
+                end
+                @exclude_files << tmp_file
             end
         end
 
@@ -157,7 +169,9 @@ __DATA__
         end
 
         def cmd_index
-            [ "bup", "index", "-d", bup_root_path, "-f", index_file_path, opt_no_check_device ].map{ |e| "\"#{e}\"" }.join(" ")
+            @source.execute_bash
+
+            [ "bup", "index", "-d", bup_root_path, "-f", index_file_path, opt_no_check_device, opt_exclude ].map{ |e| "\"#{e}\"" }.join(" ")
         end
 
         def opt_no_check_device
@@ -170,6 +184,10 @@ __DATA__
 
         def index_file_path
             [ bup_root_path, "#{@source.name}.index" ].join("/")
+        end
+
+        def opt_exclude
+            @source.exclude_files.map{ |f| [ "--exclude-from", f.path ] }.flatten.join(" ")
         end
     end
 

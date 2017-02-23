@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "minitest", "~> 5.0"
   spec.add_development_dependency "shoulda-context"
   spec.add_development_dependency "mocha"
+  spec.add_development_dependency "byebug"
   spec.add_dependency "main"
   spec.add_dependency "attr-chain"
 end

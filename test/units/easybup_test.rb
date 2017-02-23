@@ -59,5 +59,38 @@ class EasybupUnitTest < Minitest::Test
 
             end
         end
+
+        context "#execute_bash" do
+            setup do
+                @source = Source.new( "source" )
+                @source.exclude_bash( "echo Hello" )
+            end
+
+            should "write stdout of bash command to a tempfile" do
+                assert_equal 0, @source.exclude_files.length
+                @source.execute_bash() 
+                assert_equal 1, @source.exclude_files.length
+                assert_equal "Hello\n", @source.exclude_files.first.read
+            end
+        end
+    end
+
+    context "Task" do
+        context "#cmd_index" do
+            should "has --exclude-from bash cmd" do
+                task = Task.new(:task)
+                source = Source.new( "source" )
+                source.path( "~/source" )
+                source.exclude_bash( "echo Hello" )
+
+                repo = Repo.new( :repo )
+                repo.bup_root( "~/buproot" )
+                
+                task.source(source)
+                task.repo(repo)
+                cmd = task.cmd_index
+                assert cmd.index( "--exclude-from #{source.exclude_files.first.path}" )
+            end
+        end
     end
 end
