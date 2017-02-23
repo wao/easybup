@@ -37,7 +37,7 @@ Main{
         exit_success!
     end
 
-    mode :init do
+    mode :"create-config" do
         option("force"){
             optional
         }
