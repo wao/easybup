@@ -63,7 +63,72 @@ Main{
 
         def run
             cfg = get_config
-            pp cfg
+            puts "Sources:"
+            cfg.sources.each_pair do |name, source|
+                puts "  #{source.exists? ? '*':' '}   #{source.name}  #{source.path.join(' ')}"
+            end
+
+            puts "\n"
+
+            puts "Repos:"
+            cfg.repos.each_pair do |name, repo|
+                puts "  #{repo.exists? ? '*':' '}   #{repo.name}  #{repo.bup_root}"
+            end
+
+            puts "\n"
+
+            puts "Tasks:"
+            cfg.tasks.each_pair do |name, task|
+                puts "  #{task.exists? ? '*':' '}   #{task.name}  #{task.source.name}  #{task.repo.name}"
+            end
+        end
+    end
+
+    mode :index do
+        argument("task"){
+            optional
+        }
+
+        def run
+            cfg = get_config
+            task = nil
+            if params["task"].given?
+                task_name = params[ "task" ].value.to_sym
+                if cfg.tasks.include? task_name
+                    task = cfg.tasks[task_name]
+                    if !task.exists?
+                        if !task.source.exists?
+                            puts "Folder #{task.source.path.join(" ")} is not exist"
+                            exit_failure!
+                        end
+                        if !task.repo.exists?
+                            puts "Folder #{task.repo.bup_root} is not exist"
+                            exit_failure!
+                        end
+                    end
+                else
+                    puts "Unkown task #{task_name}"
+                    exit_failure!
+                end
+            end
+
+            if task.nil?
+                ava_tasks = cfg.tasks.select{ |n,t| t.exists? }
+                if ava_tasks.empty?
+                    puts "No avaliabe task."
+                    exit_failure!
+                end
+
+                if ava_tasks.keys.length > 1 
+                    puts "More than one task avaliabe, please choose one"
+                    exit_failure!
+                end
+
+                task = ava_tasks.values.first
+            end
+
+            puts task.cmd_index
+            task.source.execute_bash
         end
     end
 }
