@@ -88,8 +88,7 @@ class EasybupUnitTest < Minitest::Test
                 
                 task.source(source)
                 task.repo(repo)
-                cmd = task.cmd_index
-                assert cmd.index( "--exclude-from #{source.exclude_files.first.path}" )
+                cmd = task.cmd_index assert cmd.index( "--exclude-from #{source.exclude_files.first.path}" )
             end
         end
     end

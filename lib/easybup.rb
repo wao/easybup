@@ -168,14 +168,14 @@ __DATA__
             @source.name
         end
 
-        def cmd_index
+        def cmd_index(no_update=false, silent =false )
             @source.execute_bash
 
-            [ "bup", "index", "-d", bup_root_path, "-f", index_file_path, opt_no_check_device, opt_exclude ].map{ |e| "\"#{e}\"" }.join(" ")
+            [ "bup","-d", bup_root_path, "index", no_update ? nil : "-u", silent ? "" : "-m",  "-f", index_file_path, opt_no_check_device, opt_exclude, source.path ].flatten .map{ |e| "\"#{e}\"" }.join(" ")
         end
 
         def cmd_save
-            [ "bup", "save","-d", bup_root_path, "-f", index_file_path, "-n", branch_name, source.path ].flatten.map{ |e| "\"#{e}\"" }.join(" ") 
+            [ "bup", "-d", bup_root_path, "save", "-f", index_file_path, "-n", branch_name, source.path ].flatten.map{ |e| "\"#{e}\"" }.join(" ") 
         end
 
         def opt_no_check_device
@@ -191,7 +191,7 @@ __DATA__
         end
 
         def opt_exclude
-            @source.exclude_files.map{ |f| [ "--exclude-from", f.path ] }.flatten.join(" ")
+            @source.exclude_files.map{ |f| [ "--exclude-from", f.path ] }
         end
     end
 

@@ -84,6 +84,71 @@ Main{
         end
     end
 
+    mode :save do
+        argument("task"){
+            optional
+        }
+
+        option("keep-exclude-files"){
+            optional
+        }
+
+        option("no-index"){
+            optional
+        }
+
+        def run
+            cfg = get_config
+            task = nil
+            if params["task"].given?
+                task_name = params[ "task" ].value.to_sym
+                if cfg.tasks.include? task_name
+                    task = cfg.tasks[task_name]
+                    if !task.exists?
+                        if !task.source.exists?
+                            puts "Folder #{task.source.path.join(" ")} is not exist"
+                            exit_failure!
+                        end
+                        if !task.repo.exists?
+                            puts "Folder #{task.repo.bup_root} is not exist"
+                            exit_failure!
+                        end
+                    end
+                else
+                    puts "Unkown task #{task_name}"
+                    exit_failure!
+                end
+            end
+
+            if task.nil?
+                ava_tasks = cfg.tasks.select{ |n,t| t.exists? }
+                if ava_tasks.empty?
+                    puts "No avaliabe task."
+                    exit_failure!
+                end
+
+                if ava_tasks.keys.length > 1 
+                    puts "More than one task avaliabe, please choose one"
+                    exit_failure!
+                end
+
+                task = ava_tasks.values.first
+            end
+
+            if !params["no-index"].given?
+                if params[ "keep-exclude-files" ].given?
+                    task.source.exclude_files.each do |f|
+                        FileUtils.cp f.path, File.basename( f.path )
+                    end
+                end
+                system( task.cmd_index(false, true) )
+            end
+            puts task.cmd_save
+            system( task.cmd_save )
+        end
+
+    end
+
     mode :index do
         argument("task"){
             optional
@@ -94,6 +159,10 @@ Main{
         }
 
         option("exclude-bash-only"){
+            optional
+        }
+
+        option("no-update"){
             optional
         }
 
@@ -141,13 +210,13 @@ Main{
                     FileUtils.cp f.path, File.basename( f.path )
                 end
             else
-                puts task.cmd_index
-                puts task.cmd_save
+                puts task.cmd_index(params["no-update"].given?)
                 if params[ "keep-exclude-files" ].given?
                     task.source.exclude_files.each do |f|
                         FileUtils.cp f.path, File.basename( f.path )
                     end
                 end
+                system( task.cmd_index(params["no-update"].given?) )
             end
         end
     end
